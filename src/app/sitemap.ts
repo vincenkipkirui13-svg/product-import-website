@@ -1,0 +1,2 @@
+import type {MetadataRoute} from "next";
+export default function sitemap():MetadataRoute.Sitemap{const base=process.env.NEXT_PUBLIC_SITE_URL||"https://example.com";return["/","/products","/categories","/cart"].map(path=>({url:`${base}${path}`,changeFrequency:"daily",priority:path==="/" ? 1 : .7}));}
