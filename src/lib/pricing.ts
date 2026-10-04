@@ -1,0 +1,3 @@
+import {z} from "zod";
+export const pricingInput=z.object({sourcePrice:z.number().nonnegative(),markupType:z.enum(["fixed","percentage"]),markupValue:z.number().nonnegative()});
+export function calculateSellingPrice(input:z.infer<typeof pricingInput>){const raw=input.markupType==="percentage"?input.sourcePrice*(1+input.markupValue/100):input.sourcePrice+input.markupValue;return Math.round(raw*100)/100;}
