@@ -1,0 +1,4 @@
+import {z} from "zod";
+export const sourceProductSchema=z.object({sourceId:z.string().min(1),sourceSku:z.string().optional(),sourceUrl:z.string().url(),name:z.string().min(1),description:z.string().optional(),sourcePrice:z.number().nonnegative(),currency:z.string().length(3),availability:z.enum(["available","unavailable","unknown"]),imageUrls:z.array(z.string().url()).min(1),category:z.string().min(1),variants:z.array(z.object({id:z.string().min(1),name:z.string().min(1),value:z.string().min(1)})).default([])});
+export type SourceProduct=z.infer<typeof sourceProductSchema>;
+export function productIdentity(product:SourceProduct){return product.sourceSku?`sku:${product.sourceSku}`:`source:${product.sourceId}`;}
