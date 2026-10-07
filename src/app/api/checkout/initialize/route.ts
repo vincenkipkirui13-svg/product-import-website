@@ -19,7 +19,7 @@ export async function POST(request:NextRequest){
   if(!parsed.success)return NextResponse.json({error:"Invalid checkout details."},{status:400});
 
   const merged=new Map<string,number>();
-  for(const item of parsed.data.items)merged.set(item.productId,(merged.get(item.productId)||0)+item.quantity);
+  for(const item of parsed.data.items){\n    const next=(merged.get(item.productId)||0)+item.quantity;\n    if(next>99)return NextResponse.json({error:"A product quantity cannot exceed 99."},{status:400});\n    merged.set(item.productId,next);\n  }
 
   const products=await prisma.product.findMany({
     where:{id:{in:[...merged.keys()]}}
