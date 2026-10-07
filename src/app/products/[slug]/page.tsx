@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {prisma} from "@/lib/prisma";
+import AddToCartButton from "@/components/add-to-cart-button";
 
 export const dynamic="force-dynamic";
 
@@ -33,7 +34,7 @@ export default async function ProductDetails({params}:{params:Promise<{slug:stri
           <span className={`availability availability-${product.availability.toLowerCase()}`}>{product.availability.toLowerCase()}</span>
           {product.description&&<div className="product-description">{product.description}</div>}
           {product.variants.length>0&&<div className="variant-list"><h2>Options</h2>{product.variants.map(v=><div key={v.id}><strong>{v.name}</strong><span>{v.value}</span></div>)}</div>}
-          <div className="actions"><button className="button primary" disabled={product.availability!=="AVAILABLE"}>{product.availability==="AVAILABLE"?"Add to cart":"Currently unavailable"}</button><Link className="button secondary" href="/products">Back to products</Link></div>
+          <div className="actions">{product.availability==="AVAILABLE"?<AddToCartButton item={{productId:product.id,slug:product.slug,name:product.name,price:Number(product.sellingPrice),currency:product.currency,imageUrl:primary?.url??null}}/>:<button className="button secondary" disabled>Currently unavailable</button>}<Link className="button secondary" href="/products">Back to products</Link></div>
         </div>
       </div>
     </section>
