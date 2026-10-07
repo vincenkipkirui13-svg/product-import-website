@@ -4,3 +4,4 @@ Production e-commerce build foundation. Product data is never fabricated; catalo
 
 
 Deployment trigger: 2026-10-07.
+Vercel retry trigger: 2026-10-07 19:10.
