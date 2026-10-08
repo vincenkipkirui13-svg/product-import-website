@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {prisma} from "@/lib/prisma";
+import type {Prisma} from "@prisma/client";
 
 function formatPrice(value:unknown,currency:string){
   const amount=Number(value);
@@ -7,10 +8,14 @@ function formatPrice(value:unknown,currency:string){
   return new Intl.NumberFormat("en-KE",{style:"currency",currency,maximumFractionDigits:2}).format(amount);
 }
 
+type HomeProduct=Prisma.ProductGetPayload<{
+  include:{images:{orderBy:{sortOrder:"asc"};take:1}}
+}>;
+
 export const dynamic="force-dynamic";
 
 export default async function HomePage(){
-  let products:Awaited<ReturnType<typeof prisma.product.findMany>>=[];
+  let products:HomeProduct[]=[];
   let categories:string[]=[];
   try{
     products=await prisma.product.findMany({
