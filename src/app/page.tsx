@@ -1,7 +1,10 @@
 import Link from "next/link";
+import type {Prisma} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
 
 export const dynamic="force-dynamic";
+
+type ProductRailProduct=Prisma.ProductGetPayload<{include:{images:{orderBy:{sortOrder:"asc"};take:1}}}>;
 
 function money(value:unknown,currency:string){
   const amount=Number(value);
@@ -9,7 +12,7 @@ function money(value:unknown,currency:string){
   return new Intl.NumberFormat("en-KE",{style:"currency",currency,maximumFractionDigits:2}).format(amount);
 }
 
-function ProductRail({title,kicker,products,href="/products"}:{title:string;kicker:string;products:Awaited<ReturnType<typeof prisma.product.findMany>>;href?:string}){
+function ProductRail({title,kicker,products,href="/products"}:{title:string;kicker:string;products:ProductRailProduct[];href?:string}){
   if(!products.length)return null;
   return <section className="market-section">
     <div className="container market-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><Link href={href}>See all <span>→</span></Link></div>
