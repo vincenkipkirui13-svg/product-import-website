@@ -3,53 +3,18 @@
 import Link from "next/link";
 import {useEffect,useMemo,useState} from "react";
 import type {CartItem} from "@/components/add-to-cart-button";
-
 const KEY="product-store-cart";
 
 export default function CartPage(){
-  const [items,setItems]=useState<CartItem[]>([]);
-  const [loaded,setLoaded]=useState(false);
-
-  function read(){
-    try{
-      const raw=window.localStorage.getItem(KEY);
-      setItems(raw?JSON.parse(raw):[]);
-    }catch{
-      setItems([]);
-    }finally{setLoaded(true);}
-  }
-
-  useEffect(()=>{
-    read();
-    const handler=()=>read();
-    window.addEventListener("cart-updated",handler);
-    return()=>window.removeEventListener("cart-updated",handler);
-  },[]);
-
-  function update(productId:string,quantity:number){
-    const next=items.map(item=>item.productId===productId?{...item,quantity}:item).filter(item=>item.quantity>0);
-    setItems(next);
-    window.localStorage.setItem(KEY,JSON.stringify(next));
-  }
-
-  const total=useMemo(()=>items.reduce((sum,item)=>sum+(item.price*item.quantity),0),[items]);
-
-  return <main>
-    <header className="site-header"><div className="container nav"><Link className="brand" href="/">Product<span>Store</span></Link><Link href="/products">Continue shopping</Link></div></header>
-    <section className="section page-top">
-      <div className="container">
-        <p className="eyebrow">YOUR ORDER</p>
-        <h1>Cart</h1>
-        {!loaded?<div className="empty-state compact"><h2>Loading cart…</h2></div>:items.length===0?<div className="empty-state compact"><h2>Your cart is empty</h2><p>Add a legitimate catalogue product to begin checkout.</p><Link className="button primary" href="/products">Browse products</Link></div>:<div className="cart-layout">
-          <div className="cart-items">
-            {items.map(item=><article className="cart-item" key={item.productId}>
-              <div className="cart-thumb">{item.imageUrl?<img src={item.imageUrl} alt="" loading="lazy"/>:<span>No image</span>}</div>
-              <div className="cart-item-main"><Link href={`/products/${item.slug}`}><h2>{item.name}</h2></Link><p>{new Intl.NumberFormat("en-KE",{style:"currency",currency:item.currency}).format(item.price)}</p><div className="quantity-row"><button type="button" onClick={()=>update(item.productId,Math.max(0,item.quantity-1))} aria-label={`Decrease quantity of ${item.name}`}>−</button><span>{item.quantity}</span><button type="button" onClick={()=>update(item.productId,Math.min(99,item.quantity+1))} aria-label={`Increase quantity of ${item.name}`}>+</button><button className="remove-button" type="button" onClick={()=>update(item.productId,0)}>Remove</button></div></div>
-            </article>)}
-          </div>
-          <aside className="cart-summary"><h2>Order summary</h2><div className="summary-row"><span>Items</span><strong>{items.reduce((sum,item)=>sum+item.quantity,0)}</strong></div><div className="summary-row total"><span>Estimated total</span><strong>KSh {total.toLocaleString("en-KE",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div><p className="muted small">This is a cart estimate. The server will revalidate products, availability and prices before payment.</p><Link className="button primary full" href="/checkout">Continue to checkout</Link></aside>
-        </div>}
-      </div>
-    </section>
-  </main>;
+  const [items,setItems]=useState<CartItem[]>([]); const [loaded,setLoaded]=useState(false);
+  function read(){try{const raw=window.localStorage.getItem(KEY);const value=raw?JSON.parse(raw):[];setItems(Array.isArray(value)?value:[])}catch{setItems([])}finally{setLoaded(true)}}
+  useEffect(()=>{read();const h=()=>read();window.addEventListener("cart-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("cart-updated",h);window.removeEventListener("storage",h)}},[]);
+  function update(id:string,quantity:number){const next=items.map(item=>item.productId===id?{...item,quantity}:item).filter(item=>item.quantity>0);setItems(next);window.localStorage.setItem(KEY,JSON.stringify(next));window.dispatchEvent(new CustomEvent("cart-updated"))}
+  function clear(){setItems([]);window.localStorage.removeItem(KEY);window.dispatchEvent(new CustomEvent("cart-updated"))}
+  const currencies=useMemo(()=>Array.from(new Set(items.map(item=>item.currency))),[items]);
+  const total=useMemo(()=>items.reduce((sum,item)=>sum+item.price*item.quantity,0),[items]);
+  const money=(value:number,currency:string)=>new Intl.NumberFormat("en-KE",{style:"currency",currency}).format(value);
+  return <main><section className="section page-top"><div className="container"><div className="catalogue-heading"><div><p className="eyebrow">YOUR ORDER</p><h1>Shopping cart</h1><p className="muted">Your cart is stored on this device. Checkout always rechecks the live catalogue.</p></div>{items.length>0&&<button className="button secondary" type="button" onClick={clear}>Clear cart</button>}</div>
+    {!loaded?<div className="empty-state compact"><h2>Loading your cart…</h2></div>:items.length===0?<div className="empty-state compact"><div className="empty-icon">🛒</div><h2>Your cart is empty</h2><p>Add a verified catalogue product to begin.</p><Link className="button primary" href="/products">Browse products</Link></div>:<div className="cart-layout"><div className="cart-items">{items.map(item=><article className="cart-item" key={item.productId}><div className="cart-thumb">{item.imageUrl?<img src={item.imageUrl} alt="" loading="lazy"/>:<span>Image pending</span>}</div><div className="cart-item-main"><Link href={`/products/${item.slug}`}><h2>{item.name}</h2></Link><p>{money(item.price,item.currency)}</p><div className="quantity-row"><button type="button" onClick={()=>update(item.productId,Math.max(0,item.quantity-1)} aria-label={`Decrease quantity of ${item.name}`}>−</button><span aria-live="polite">{item.quantity}</span><button type="button" onClick={()=>update(item.productId,Math.min(99,item.quantity+1))} aria-label={`Increase quantity of ${item.name}`}>+</button><button className="remove-button" type="button" onClick={()=>update(item.productId,0)}>Remove</button></div></div></article>)}</div><aside className="cart-summary"><h2>Order summary</h2><div className="summary-row"><span>Items</span><strong>{items.reduce((n,item)=>n+item.quantity,0)}</strong></div>{currencies.length===1?<div className="summary-row total"><span>Estimated total</span><strong>{money(total,currencies[0])}</strong></div>:<div className="summary-row total"><span>Currencies</span><strong>{currencies.join(", ")}</strong></div>}<p className="muted small">{currencies.length>1?"Checkout currently requires a single currency per order.":"The final amount is calculated again on the server before payment."}</p><Link className={`button primary full ${currencies.length>1?"disabled-link":""}`} href={currencies.length===1?"/checkout":"#"} aria-disabled={currencies.length>1}>Continue to checkout</Link></aside></div>}
+  </div></section></main>;
 }

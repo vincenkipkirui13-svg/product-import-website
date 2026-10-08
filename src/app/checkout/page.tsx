@@ -3,62 +3,15 @@
 import Link from "next/link";
 import {FormEvent,useEffect,useMemo,useState} from "react";
 import type {CartItem} from "@/components/add-to-cart-button";
-
 const KEY="product-store-cart";
-
 export default function CheckoutPage(){
-  const [items,setItems]=useState<CartItem[]>([]);
-  const [loaded,setLoaded]=useState(false);
-  const [name,setName]=useState("");
-  const [email,setEmail]=useState("");
-  const [phone,setPhone]=useState("");
-  const [error,setError]=useState("");
-  const [busy,setBusy]=useState(false);
-
-  useEffect(()=>{
-    try{setItems(JSON.parse(window.localStorage.getItem(KEY)||"[]"));}catch{setItems([]);}
-    setLoaded(true);
-  },[]);
-
-  const total=useMemo(()=>items.reduce((sum,item)=>sum+item.price*item.quantity,0),[items]);
-
-  async function submit(event:FormEvent){
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    const response=await fetch("/api/checkout/initialize",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      customerName:name,customerEmail:email,customerPhone:phone,
-      items:items.map(item=>({productId:item.productId,quantity:item.quantity}))
-    })});
-    const data=await response.json().catch(()=>({}));
-    if(response.ok&&data.authorizationUrl){
-      window.location.href=data.authorizationUrl;
-      return;
-    }
-    setError(data.error||"Unable to start payment.");
-    setBusy(false);
-  }
-
+  const [items,setItems]=useState<CartItem[]>([]);const[loaded,setLoaded]=useState(false);const[name,setName]=useState("");const[email,setEmail]=useState("");const[phone,setPhone]=useState("");const[error,setError]=useState("");const[busy,setBusy]=useState(false);
+  useEffect(()=>{try{const value=JSON.parse(window.localStorage.getItem(KEY)||"[]");setItems(Array.isArray(value)?value:[])}catch{setItems([])}setLoaded(true)},[]);
+  const currencies=useMemo(()=>Array.from(new Set(items.map(item=>item.currency))),[items]);const total=useMemo(()=>items.reduce((sum,item)=>sum+item.price*item.quantity,0),[items]);
+  const money=(value:number,currency:string)=>new Intl.NumberFormat("en-KE",{style:"currency",currency}).format(value);
+  async function submit(event:FormEvent){event.preventDefault();setBusy(true);setError("");try{const response=await fetch("/api/checkout/initialize",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customerName:name,customerEmail:email,customerPhone:phone,items:items.map(item=>({productId:item.productId,quantity:item.quantity}))})});const data=await response.json().catch(()=>({}));if(response.ok&&data.authorizationUrl){window.location.href=data.authorizationUrl;return}setError(data.error||"Unable to start payment.")}catch{setError("We could not reach checkout. Please try again.")}setBusy(false)}
   if(!loaded)return <main><section className="section page-top"><div className="container"><div className="empty-state compact"><h2>Loading checkout…</h2></div></div></section></main>;
-
-  return <main>
-    <header className="site-header"><div className="container nav"><Link className="brand" href="/">Product<span>Store</span></Link><Link href="/cart">Back to cart</Link></div></header>
-    <section className="section page-top">
-      <div className="container">
-        <p className="eyebrow">SECURE CHECKOUT</p>
-        <h1>Complete your order</h1>
-        {items.length===0?<div className="empty-state compact"><h2>Your cart is empty</h2><p>Add a catalogue product before checkout.</p><Link className="button primary" href="/products">Browse products</Link></div>:<div className="checkout-layout">
-          <form className="checkout-form" onSubmit={submit}>
-            <label>Full name<input value={name} onChange={e=>setName(e.target.value)} autoComplete="name" required maxLength={120}/></label>
-            <label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" required maxLength={200}/></label>
-            <label>Phone number<input value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" required maxLength={30}/></label>
-            {error&&<p className="form-error" role="alert">{error}</p>}
-            <button className="button primary full" type="submit" disabled={busy}>{busy?"Connecting to Paystack…":"Continue to secure payment"}</button>
-            <p className="muted small">Your final amount is recalculated from the live catalogue on the server before Paystack is initialized.</p>
-          </form>
-          <aside className="cart-summary"><h2>Order summary</h2>{items.map(item=><div className="summary-row" key={item.productId}><span>{item.name} × {item.quantity}</span><strong>{item.price.toLocaleString("en-KE",{minimumFractionDigits:2})}</strong></div>)}<div className="summary-row total"><span>Estimated total</span><strong>KSh {total.toLocaleString("en-KE",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div></aside>
-        </div>}
-      </div>
-    </section>
-  </main>;
+  return <main><section className="section page-top"><div className="container"><div className="catalogue-heading"><div><p className="eyebrow">SECURE CHECKOUT</p><h1>Complete your order</h1><p className="muted">Your details are sent only to the checkout service and used to create your order.</p></div><Link className="button secondary" href="/cart">Back to cart</Link></div>
+    {items.length===0?<div className="empty-state compact"><h2>Your cart is empty</h2><p>Add a catalogue product before checkout.</p><Link className="button primary" href="/products">Browse products</Link></div>:currencies.length!==1?<div className="empty-state compact"><h2>One currency per order</h2><p>Your cart contains multiple currencies. Return to the cart and remove items so the order uses one currency.</p><Link className="button primary" href="/cart">Review cart</Link></div>:<div className="checkout-layout"><form className="checkout-form" onSubmit={submit}><div className="form-intro"><span>01</span><div><b>Customer details</b><p>Use the details you want attached to this order.</p></div></div><label>Full name<input value={name} onChange={e=>setName(e.target.value)} autoComplete="name" required maxLength={120} placeholder="Your full name"/></label><label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" required maxLength={200} placeholder="you@example.com"/></label><label>Phone number<input value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" required maxLength={30} placeholder="+254…"/></label>{error&&<p className="form-error" role="alert">{error}</p>}<button className="button primary button-large full" type="submit" disabled={busy}>{busy?"Connecting to Paystack…":"Continue to secure payment →"}</button><p className="muted small">Payment is initialized server-side. The live product price, availability, currency and order total are checked again before Paystack is called.</p></form><aside className="cart-summary"><div className="summary-title"><span>02</span><h2>Order summary</h2></div>{items.map(item=><div className="summary-row" key={item.productId}><span>{item.name} × {item.quantity}</span><strong>{money(item.price*item.quantity,item.currency)}</strong></div>)}<div className="summary-row total"><span>Estimated total</span><strong>{money(total,currencies[0])}</strong></div><div className="payment-badge"><span>✓</span><div><b>Secure payment</b><small>Verified through Paystack</small></div></div></aside></div>}
+  </div></section></main>;
 }
