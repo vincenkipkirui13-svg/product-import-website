@@ -1,60 +1,59 @@
 import Link from "next/link";
 import {prisma} from "@/lib/prisma";
-import type {Prisma} from "@prisma/client";
 
-function formatPrice(value:unknown,currency:string){
+export const dynamic="force-dynamic";
+
+function money(value:unknown,currency:string){
   const amount=Number(value);
   if(!Number.isFinite(amount))return "Price unavailable";
   return new Intl.NumberFormat("en-KE",{style:"currency",currency,maximumFractionDigits:2}).format(amount);
 }
 
-type HomeProduct=Prisma.ProductGetPayload<{
-  include:{images:{orderBy:{sortOrder:"asc"};take:1}}
-}>;
-
-export const dynamic="force-dynamic";
+function ProductRail({title,kicker,products,href="/products"}:{title:string;kicker:string;products:Awaited<ReturnType<typeof prisma.product.findMany>>;href?:string}){
+  if(!products.length)return null;
+  return <section className="market-section">
+    <div className="container market-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><Link href={href}>See all <span>→</span></Link></div>
+    <div className="container rail-shell"><div className="product-rail">{products.map(product=>{const image=product.images[0];return <Link className="market-card" href={`/products/${product.slug}`} key={product.id}>
+      <div className="market-card-media">{image?<img src={image.url} alt={image.alt||product.name} loading="lazy"/>:<div className="product-media-fallback">Image pending</div>}</div>
+      <div className="market-card-body"><span className="product-category">{product.category}</span><h3>{product.name}</h3><strong>{money(product.sellingPrice,product.currency)}</strong><span className={`availability availability-${product.availability.toLowerCase()}`}>{product.availability.toLowerCase()}</span></div>
+    </Link>})}</div></div>
+  </section>;
+}
 
 export default async function HomePage(){
-  let products:HomeProduct[]=[];
+  let products:Awaited<ReturnType<typeof prisma.product.findMany>>=[];
   let categories:string[]=[];
   try{
-    products=await prisma.product.findMany({
-      orderBy:{updatedAt:"desc"},
-      take:6,
-      include:{images:{orderBy:{sortOrder:"asc"},take:1}}
-    });
+    products=await prisma.product.findMany({orderBy:{updatedAt:"desc"},take:24,include:{images:{orderBy:{sortOrder:"asc"},take:1}}});
     const rows=await prisma.product.findMany({select:{category:true},distinct:["category"],orderBy:{category:"asc"}});
     categories=rows.map(row=>row.category);
   }catch{}
 
-  return <main>
-    <section className="hero">
-      <div className="hero-orbit hero-orbit-one"/>
-      <div className="hero-orbit hero-orbit-two"/>
-      <div className="container hero-grid">
-        <div className="hero-copy-block">
-          <div className="hero-kicker"><span/> VERIFIED CATALOGUE <span/> SECURE CHECKOUT</div>
-          <h1>Global products.<br/><em>Local trust.</em></h1>
-          <p>Discover quality imported products through a fast, transparent shopping experience built for mobile customers in Kenya.</p>
-          <div className="actions"><Link className="button primary button-large" href="/products">Shop products <span>→</span></Link><Link className="button ghost button-large" href="/categories">Browse categories</Link></div>
-          <div className="hero-trust"><span>✓ Verified catalogue data</span><span>✓ Server-checked prices</span><span>✓ Paystack checkout</span></div>
-        </div>
-        <div className="hero-art" aria-label="ImportHub shopping highlights">
-          <div className="route-card route-card-top"><span className="route-icon">↗</span><div><b>Global sourcing</b><small>Quality products from approved sources</small></div></div>
-          <div className="hero-product-card"><div className="hero-product-ring"><img src="/brand-mark.svg" alt="" width="92" height="92"/></div><span className="mini-label">IMPORT<span>HUB</span></span><strong>Shop with confidence</strong><p>Clean catalogue · clear availability · secure payment</p></div>
-          <div className="route-card route-card-bottom"><span className="route-icon">✓</span><div><b>Protected checkout</b><small>Your final price is revalidated on the server</small></div></div>
-        </div>
+  const categoryProducts=new Map<string,typeof products>();
+  for(const product of products){
+    const list=categoryProducts.get(product.category)||[];
+    if(list.length<8)list.push(product);
+    categoryProducts.set(product.category,list);
+  }
+
+  return <main className="market-home">
+    <section className="promo-marquee" aria-label="Store highlights"><div className="promo-track"><span>✓ VERIFIED CATALOGUE</span><span>SECURE PAYSTACK CHECKOUT</span><span>MOBILE-FIRST SHOPPING</span><span>TRANSPARENT AVAILABILITY</span><span>✓ VERIFIED CATALOGUE</span><span>SECURE PAYSTACK CHECKOUT</span><span>MOBILE-FIRST SHOPPING</span><span>TRANSPARENT AVAILABILITY</span></div></section>
+
+    <section className="market-hero">
+      <div className="hero-carousel" aria-label="Store highlights">
+        <div className="hero-slide hero-slide-one"><div className="container hero-slide-inner"><div className="hero-copy-block"><span className="hero-badge">IMPORTHUB · KENYA</span><h1>Shop globally.<br/><em>Buy confidently.</em></h1><p>Quality imported products, clearly presented and securely checked before you pay.</p><div className="actions"><Link className="button primary button-large" href="/products">Start shopping <span>→</span></Link><Link className="button ghost button-large" href="/categories">Explore categories</Link></div></div><div className="hero-visual"><div className="hero-orbit orbit-a"/><div className="hero-orbit orbit-b"/><div className="hero-badge-card"><img src="/brand-mark.svg" alt="" width="76" height="76"/><strong>GLOBAL<br/><span>LOCAL TRUST</span></strong><small>Verified catalogue experience</small></div><div className="floating-chip chip-one">✓ Server-checked prices</div><div className="floating-chip chip-two">KES · Secure checkout</div></div></div></div>
+        <div className="hero-slide hero-slide-two"><div className="container hero-slide-inner"><div className="hero-copy-block"><span className="hero-badge">A BETTER WAY TO DISCOVER</span><h2>More to browse.<br/><em>Less to figure out.</em></h2><p>Search, compare, discover related products and keep your cart close on every device.</p><div className="actions"><Link className="button primary button-large" href="/products">Browse catalogue <span>→</span></Link></div></div><div className="hero-panel-stack"><div><b>01</b><span>Search</span><small>Find products quickly</small></div><div><b>02</b><span>Compare</span><small>Clear prices and availability</small></div><div><b>03</b><span>Checkout</span><small>Pay securely with Paystack</small></div></div></div></div>
+        <div className="hero-slide hero-slide-three"><div className="container hero-slide-inner"><div className="hero-copy-block"><span className="hero-badge">BUILT FOR PHONES</span><h2>Your shopping journey,<br/><em>without the clutter.</em></h2><p>Touch-friendly controls, swipeable product rails and a checkout designed for everyday Kenyan mobile users.</p><div className="actions"><Link className="button primary button-large" href="/cart">Open your cart <span>→</span></Link></div></div><div className="hero-mobile-card"><div className="mobile-card-top"><span>YOUR CART</span><b>● READY</b></div><div className="mobile-lines"><i/><i/><i/><i/></div><strong>Simple shopping.<br/>Serious checkout.</strong><small>Your final total is rechecked before payment.</small></div></div></div>
       </div>
+      <div className="hero-dots" aria-hidden="true"><i/><i/><i/></div>
     </section>
 
-    <section className="trust-strip"><div className="container trust-grid"><div><b>01</b><span><strong>Authentic catalogue</strong>Source-driven product data</span></div><div><b>02</b><span><strong>Transparent pricing</strong>No hidden client-side totals</span></div><div><b>03</b><span><strong>Secure payments</strong>Paystack verification built in</span></div><div><b>04</b><span><strong>Mobile first</strong>Designed for everyday phones</span></div></div></section>
+    <section className="trust-strip"><div className="container trust-grid"><div><b>01</b><span><strong>Verified catalogue</strong>Source-driven products only</span></div><div><b>02</b><span><strong>Clear pricing</strong>Live totals are revalidated</span></div><div><b>03</b><span><strong>Secure checkout</strong>Paystack payment verification</span></div><div><b>04</b><span><strong>Made for mobile</strong>Fast, touch-friendly shopping</span></div></div></section>
 
-    <section className="section">
-      <div className="container section-heading"><div><p className="eyebrow">SHOP THE CATALOGUE</p><h2>Find what you need, without the clutter.</h2><p className="muted">Every product shown here comes from the verified catalogue. Nothing is invented to fill the page.</p></div><Link href="/products">View all products →</Link></div>
-      {categories.length>0&&<div className="container category-pills">{categories.slice(0,8).map(category=><Link key={category} href={`/products?category=${encodeURIComponent(category)}`} className="category-pill">{category}<span>→</span></Link>)}</div>}
-      {products.length>0?<div className="container product-grid home-products">{products.map(product=>{const image=product.images[0];return <Link className="product-card" href={`/products/${product.slug}`} key={product.id}><div className="product-media">{image?<img src={image.url} alt={image.alt||product.name} loading="lazy"/>:<div className="product-media-fallback">Image pending</div>}</div><div className="product-card-body"><span className="product-category">{product.category}</span><h2>{product.name}</h2><p className="product-price">{formatPrice(product.sellingPrice,product.currency)}</p><span className={`availability availability-${product.availability.toLowerCase()}`}>{product.availability.toLowerCase()}</span></div></Link>})}</div>:<div className="container empty-state"><div className="empty-icon">+</div><h3>Your catalogue is ready for authorized products</h3><p>No products are currently imported. Connect an authorized source or add approved manual products through the admin workflow—never fabricated demo products.</p><Link className="button primary" href="/admin/login">Open admin</Link></div>}
-    </section>
+    <section className="market-section category-section"><div className="container market-heading"><div><p className="eyebrow">SHOP BY CATEGORY</p><h2>Find your next favourite.</h2></div><Link href="/categories">All categories <span>→</span></Link></div>{categories.length?<div className="container category-rail">{categories.slice(0,12).map((category,index)=><Link className="category-tile" href={`/products?category=${encodeURIComponent(category)}`} key={category}><span>{String(index+1).padStart(2,"0")}</span><strong>{category}</strong><small>Shop category →</small></Link>)}</div>:<div className="container catalogue-ready"><div className="ready-mark">+</div><div><strong>Your category shelves are ready.</strong><p>Once authorized products are imported, real categories will automatically appear here. We will never create fake products to fill the shelves.</p></div><Link className="button secondary" href="/admin/login">Open admin</Link></div>}</section>
 
-    <section className="section soft-section"><div className="container split-section"><div><p className="eyebrow">BUILT FOR CONFIDENCE</p><h2>A storefront that puts clarity before hype.</h2><p className="muted">Availability stays visible, checkout recalculates the live catalogue, and payment status is verified server-side. The experience is designed to remain honest even when a product or service is temporarily unavailable.</p></div><div className="feature-stack"><div><span>01</span><div><b>Source integrity</b><p>No invented products, prices or images.</p></div></div><div><span>02</span><div><b>Checkout validation</b><p>Product, availability, price and currency are checked again before payment.</p></div></div><div><span>03</span><div><b>Accessible by default</b><p>Readable type, touch-friendly controls and responsive layouts.</p></div></div></div></div></section>
+    {products.length>0?<><ProductRail title="Latest arrivals" kicker="NEW IN" products={products.slice(0,8)}/><ProductRail title="Explore the catalogue" kicker="DISCOVER MORE" products={products.slice(8,16)}/>{Array.from(categoryProducts.entries()).slice(0,4).map(([category,list])=><ProductRail key={category} title={category} kicker="SHOP THE CATEGORY" products={list} href={`/products?category=${encodeURIComponent(category)}`}/>)}</>:<section className="market-section"><div className="container empty-market"><div className="empty-market-art"><div className="empty-orbit"/><img src="/brand-mark.svg" alt="" width="90" height="90"/></div><div><p className="eyebrow">CATALOGUE READY</p><h2>The marketplace is built.<br/>Now it is waiting for your real products.</h2><p>All product rails, catalogue discovery, product pages, cart behavior and secure checkout are ready for authorized imports. No demo products have been inserted.</p><Link className="button primary" href="/admin/login">Go to product import</Link></div></div></section>}
+
+    <section className="market-section service-section"><div className="container service-grid"><div><p className="eyebrow">WHY SHOP HERE</p><h2>A marketplace experience built around trust.</h2></div><div className="service-card"><span>01</span><strong>Real catalogue data</strong><p>Products come from authorized imports or approved manual entries.</p></div><div className="service-card"><span>02</span><strong>Server-side protection</strong><p>Prices, availability, currency and order totals are checked again at checkout.</p></div><div className="service-card"><span>03</span><strong>Easy discovery</strong><p>Search, categories, rails, product pages and cart keep the journey moving.</p></div></div></section>
   </main>;
 }
