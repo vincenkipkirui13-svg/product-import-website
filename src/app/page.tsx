@@ -24,7 +24,7 @@ function ProductRail({title,kicker,products,href="/products"}:{title:string;kick
 }
 
 export default async function HomePage(){
-  let products:Awaited<ReturnType<typeof prisma.product.findMany>>=[];
+  let products:ProductRailProduct[]=[];
   let categories:string[]=[];
   try{
     products=await prisma.product.findMany({orderBy:{updatedAt:"desc"},take:24,include:{images:{orderBy:{sortOrder:"asc"},take:1}}});
