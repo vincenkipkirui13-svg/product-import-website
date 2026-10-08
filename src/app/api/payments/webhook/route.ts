@@ -1,19 +1,21 @@
 import {createHmac,timingSafeEqual} from "node:crypto";
 import {NextRequest,NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
+import {getPaymentSettings} from "@/lib/payment-config";
 import {verifyPaystackTransaction} from "@/lib/paystack";
 
 export async function POST(request:NextRequest){
-  const secret=process.env.PAYSTACK_SECRET_KEY;
-  if(!secret)return NextResponse.json({error:"Webhook is not configured."},{status:503});
+  let settings;
+  try{settings=await getPaymentSettings();}catch{return NextResponse.json({error:"Webhook is not configured."},{status:503});}
+  if(!settings.secretKey)return NextResponse.json({error:"Webhook is not configured."},{status:503});
 
   const raw=await request.text();
   const signature=request.headers.get("x-paystack-signature")||"";
-  const expected=createHmac("sha512",secret).update(raw).digest("hex");
+  const expected=createHmac("sha512",settings.secretKey).update(raw).digest("hex");
   const valid=signature.length===expected.length&&timingSafeEqual(Buffer.from(signature),Buffer.from(expected));
   if(!valid)return NextResponse.json({error:"Invalid webhook signature."},{status:401});
 
-  let event:{event?:string;data?:{reference?:string;amount?:number;currency?:string}}={};
+  let event:{event?:string;data?:{reference?:string}}={};
   try{event=JSON.parse(raw);}catch{return NextResponse.json({ok:true});}
 
   const reference=event.data?.reference;
@@ -27,6 +29,8 @@ export async function POST(request:NextRequest){
     if(order.paymentStatus!=="SUCCESS")await prisma.order.update({where:{id:order.id},data:{status:"FAILED",paymentStatus:"FAILED",paystackReference:reference}});
     return NextResponse.json({ok:true});
   }
+
+  if(order.paymentStatus==="SUCCESS")return NextResponse.json({ok:true});
 
   try{
     const verification=await verifyPaystackTransaction(reference);

@@ -8,7 +8,27 @@ export const dynamic="force-dynamic";
 export default async function AdminPage(){
   if(!(await isAdminAuthenticated()))redirect("/admin/login");
   let productCount=0,availableCount=0,orderCount=0,pendingPayments=0,importCount=0;
-  try{[productCount,availableCount,orderCount,pendingPayments,importCount]=await Promise.all([prisma.product.count(),prisma.product.count({where:{availability:"AVAILABLE"}}),prisma.order.count(),prisma.order.count({where:{paymentStatus:"PENDING"}}),prisma.importRun.count()])}catch{}
-  const cards=[["Products",productCount,"Catalogue and pricing","/admin/products"],["Available",availableCount,"Products currently purchasable","/admin/products"],["Orders",orderCount,"Customer order records","/admin/orders"],["Payments pending",pendingPayments,"Orders awaiting payment","/admin/orders"],["Import runs",importCount,"Source synchronization history","/admin/system"],["Store",null,"Branding and storefront controls","/admin/store"]];
-  return <main className="admin-page"><section className="section page-top"><div className="container"><div className="admin-title-row"><div><p className="eyebrow">CONTROL CENTER</p><h1>Store administration</h1><p className="muted">Manage the verified catalogue, orders, branding and import operations from one protected workspace.</p></div><form action="/api/admin/logout" method="post"><button className="button secondary" type="submit">Sign out</button></form></div><div className="admin-metrics">{cards.map(([title,value,copy,href])=><Link href={String(href)} className="metric-card" key={title as string}><span>{String(title).slice(0,2).toUpperCase()}</span><strong>{value===null?"→":value as number}</strong><b>{title as string}</b><p>{copy as string}</p></Link>)}</div><div className="admin-section-grid"><Link href="/admin/products" className="admin-feature"><span>CATALOGUE</span><h2>Products & pricing</h2><p>Review real imported products, availability, images and selling prices.</p><b>Open products →</b></Link><Link href="/admin/orders" className="admin-feature dark"><span>OPERATIONS</span><h2>Orders & payments</h2><p>Monitor order states and payment verification without exposing customer data publicly.</p><b>Open orders →</b></Link><Link href="/admin/system" className="admin-feature"><span>SYSTEM</span><h2>Import readiness</h2><p>Review import runs and keep source integrity visible before connecting a supplier feed.</p><b>Open system →</b></Link></div></div></section></main>;
+  try{[productCount,availableCount,orderCount,pendingPayments,importCount]=await Promise.all([
+    prisma.product.count(),prisma.product.count({where:{availability:"AVAILABLE"}}),
+    prisma.order.count(),prisma.order.count({where:{paymentStatus:"PENDING"}}),prisma.importRun.count()
+  ])}catch{}
+  const cards=[
+    ["Products",productCount,"Catalogue and pricing","/admin/products"],
+    ["Available",availableCount,"Products currently purchasable","/admin/products"],
+    ["Orders",orderCount,"Customer order records","/admin/orders"],
+    ["Payments pending",pendingPayments,"Orders awaiting payment","/admin/orders"],
+    ["Import runs",importCount,"Source synchronization history","/admin/system"],
+    ["Store",null,"Branding and storefront controls","/admin/store"],
+    ["Payments","→","Paystack credentials and payment controls","/admin/settings"]
+  ];
+  return <main className="admin-page"><section className="section page-top"><div className="container">
+    <div className="admin-title-row"><div><p className="eyebrow">CONTROL CENTER</p><h1>Store administration</h1><p className="muted">Manage the verified catalogue, orders, branding, payments and import operations from one protected workspace.</p></div><form action="/api/admin/logout" method="post"><button className="button secondary" type="submit">Sign out</button></form></div>
+    <div className="admin-metrics">{cards.map(([title,value,copy,href])=><Link href={String(href)} className="metric-card" key={title as string}><span>{String(title).slice(0,2).toUpperCase()}</span><strong>{value===null?"→":value as number}</strong><b>{title as string}</b><p>{copy as string}</p></Link>)}</div>
+    <div className="admin-section-grid">
+      <Link href="/admin/products" className="admin-feature"><span>CATALOGUE</span><h2>Products & pricing</h2><p>Review real imported products, availability, images and selling prices.</p><b>Open products →</b></Link>
+      <Link href="/admin/orders" className="admin-feature dark"><span>OPERATIONS</span><h2>Orders & payments</h2><p>Monitor order states and payment verification without exposing customer data publicly.</p><b>Open orders →</b></Link>
+      <Link href="/admin/settings" className="admin-feature"><span>PAYMENTS</span><h2>Payment settings</h2><p>Securely connect Paystack and control whether customers can start online payments.</p><b>Configure payments →</b></Link>
+      <Link href="/admin/system" className="admin-feature"><span>SYSTEM</span><h2>Import readiness</h2><p>Review import runs and keep source integrity visible before connecting a supplier feed.</p><b>Open system →</b></Link>
+    </div>
+  </div></section></main>;
 }
