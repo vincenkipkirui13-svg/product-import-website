@@ -1,31 +1,6 @@
 "use client";
-
 import Link from "next/link";
 import {useEffect,useState} from "react";
-
 const KEY="product-store-cart";
-
-export default function CheckoutCallback(){
-  const [status,setStatus]=useState<"loading"|"success"|"failed">("loading");
-  const [message,setMessage]=useState("Confirming your payment securely…");
-
-  useEffect(()=>{
-    const reference=new URLSearchParams(window.location.search).get("reference");
-    if(!reference){setStatus("failed");setMessage("No payment reference was provided.");return;}
-    fetch(`/api/payments/verify?reference=${encodeURIComponent(reference)}`,{cache:"no-store"})
-      .then(async response=>({ok:response.ok,data:await response.json().catch(()=>({}))}))
-      .then(({ok,data})=>{
-        if(ok&&data.status==="success"){
-          window.localStorage.removeItem(KEY);
-          setStatus("success");
-          setMessage("Your payment was verified and your order is confirmed.");
-        }else{
-          setStatus("failed");
-          setMessage(data.error||"The payment could not be confirmed. Please contact support before trying again.");
-        }
-      })
-      .catch(()=>{setStatus("failed");setMessage("We could not reach the payment verification service. Please try again shortly.");});
-  },[]);
-
-  return <main><section className="section page-top"><div className="container"><div className="empty-state compact"><p className="eyebrow">{status==="loading"?"PAYMENT":"PAYMENT RESULT"}</p><div className="empty-icon">{status==="success"?"✓":status==="failed"?"!":"…"}</div><h1 className="callback-title">{status==="success"?"Payment confirmed":status==="failed"?"Payment not confirmed":"Verifying payment"}</h1><p>{message}</p><div className="actions"><Link className="button primary" href={status==="success"?"/":"/cart"}>{status==="success"?"Back to store":"Return to cart"}</Link></div></div></div></section></main>;
-}
+type State="loading"|"success"|"failed"|"pending";
+export default function CheckoutCallback(){const[status,setStatus]=useState<State>("loading");const[message,setMessage]=useState("Waiting for Paystack to confirm your M-Pesa payment…");useEffect(()=>{const ref=new URLSearchParams(window.location.search).get("reference");if(!ref){setStatus("failed");setMessage("No payment reference was provided.");return}let active=true;let attempts=0;let timer:ReturnType<typeof setTimeout>|undefined;const check=async()=>{try{const r=await fetch("/api/payments/verify?reference="+encodeURIComponent(ref),{cache:"no-store"});const d=await r.json().catch(()=>({}));if(!active)return;if(r.ok&&d.status==="success"){window.localStorage.removeItem(KEY);setStatus("success");setMessage("Your M-Pesa payment was verified and your order is confirmed.");return}if(d.status==="failed"||d.status==="abandoned"||d.status==="reversed"){setStatus("failed");setMessage(d.error||"The payment was not completed. If money was deducted, contact support before trying again.");return}attempts++;if(attempts>=30){setStatus("pending");setMessage("Payment confirmation is still pending. Check again shortly and do not pay a second time unless the first request has failed.");return}setStatus("loading");setMessage("Check your phone for the M-Pesa prompt and enter your PIN. Waiting for confirmation…");timer=setTimeout(check,3000)}catch{if(!active)return;attempts++;if(attempts>=30){setStatus("pending");setMessage("We could not confirm the payment yet. Please check again shortly before attempting another payment.");return}timer=setTimeout(check,3000)}};void check();return()=>{active=false;if(timer)clearTimeout(timer)}},[]);return <main><section className="section page-top"><div className="container"><div className="empty-state compact"><p className="eyebrow">{status==="loading"?"M-PESA PAYMENT":"PAYMENT RESULT"}</p><div className="empty-icon">{status==="success"?"✓":status==="failed"?"!":"…"}</div><h1 className="callback-title">{status==="success"?"Payment confirmed":status==="failed"?"Payment not completed":status==="pending"?"Confirmation pending":"Waiting for payment"}</h1><p>{message}</p><div className="actions"><Link className="button primary" href={status==="success"?"/":"/cart"}>{status==="success"?"Back to store":status==="pending"?"Return to store":"Return to cart"}</Link><button className="button secondary" type="button" onClick={()=>window.location.reload()}>Check status again</button></div></div></div></section></main>}

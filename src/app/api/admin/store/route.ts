@@ -1,0 +1,7 @@
+import {NextRequest,NextResponse} from "next/server";
+import {z} from "zod";
+import {prisma} from "@/lib/prisma";
+import {isAdminAuthenticated} from "@/lib/admin-guard";
+const schema=z.object({storeName:z.string().trim().min(2).max(100),logoUrl:z.string().trim().max(2000).optional().or(z.literal("")),phone:z.string().trim().max(40).optional().or(z.literal("")),email:z.string().trim().email().max(200).optional().or(z.literal(""))});
+export async function GET(){if(!(await isAdminAuthenticated()))return NextResponse.json({error:"Unauthorized"},{status:401});const settings=await prisma.storeSettings.findUnique({where:{id:"default"}});return NextResponse.json(settings||{id:"default",storeName:"ImportHub",logoUrl:"",phone:"",email:""},{headers:{"Cache-Control":"no-store"}})}
+export async function PUT(request:NextRequest){if(!(await isAdminAuthenticated()))return NextResponse.json({error:"Unauthorized"},{status:401});const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:"Check the store name, logo URL, phone and email fields."},{status:400});const d=parsed.data;const settings=await prisma.storeSettings.upsert({where:{id:"default"},create:{id:"default",storeName:d.storeName,logoUrl:d.logoUrl||null,phone:d.phone||null,email:d.email||null},update:{storeName:d.storeName,logoUrl:d.logoUrl||null,phone:d.phone||null,email:d.email||null}});return NextResponse.json({ok:true,settings})}

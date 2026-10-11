@@ -1,0 +1,6 @@
+import {NextRequest,NextResponse} from "next/server";
+import {z} from "zod";
+import {prisma} from "@/lib/prisma";
+import {isAdminAuthenticated} from "@/lib/admin-guard";
+const schema=z.object({sellingPrice:z.coerce.number().finite().positive().optional(),availability:z.enum(["AVAILABLE","UNAVAILABLE","UNKNOWN"]).optional(),category:z.string().trim().min(1).max(100).optional()}).refine(v=>Object.keys(v).length>0);
+export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:string}>}){if(!(await isAdminAuthenticated()))return NextResponse.json({error:"Unauthorized"},{status:401});const {id}=await params;const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:"Provide a valid selling price, availability or category."},{status:400});const found=await prisma.product.findUnique({where:{id},select:{id:true}});if(!found)return NextResponse.json({error:"Product not found."},{status:404});const d=parsed.data;await prisma.product.update({where:{id},data:{...(d.sellingPrice!==undefined?{sellingPrice:d.sellingPrice.toFixed(2)}:{}),...(d.availability?{availability:d.availability}:{}),...(d.category?{category:d.category}:{})}});return NextResponse.json({ok:true})}

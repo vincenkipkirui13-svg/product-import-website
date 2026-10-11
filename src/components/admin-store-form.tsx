@@ -1,0 +1,7 @@
+"use client";
+import {useState} from "react";
+export default function AdminStoreForm({initial}:{initial:{storeName:string;logoUrl:string|null;phone:string|null;email:string|null}}){
+const [storeName,setStoreName]=useState(initial.storeName);const [logoUrl,setLogoUrl]=useState(initial.logoUrl||"");const [phone,setPhone]=useState(initial.phone||"");const [email,setEmail]=useState(initial.email||"");const [message,setMessage]=useState("");
+async function save(e:React.FormEvent){e.preventDefault();const r=await fetch("/api/admin/store",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({storeName,logoUrl,phone,email})});setMessage(r.ok?"Saved successfully.":"Unable to save settings.");}
+return <form className="payment-settings-card" onSubmit={save}><h2>Store identity</h2><label>Store name<input required value={storeName} onChange={e=>setStoreName(e.target.value)}/></label><label>Logo URL<input value={logoUrl} onChange={e=>setLogoUrl(e.target.value)}/></label><label>Contact phone<input value={phone} onChange={e=>setPhone(e.target.value)}/></label><label>Contact email<input value={email} onChange={e=>setEmail(e.target.value)}/></label><p>{message}</p><button className="button primary">Save store settings</button></form>
+}
