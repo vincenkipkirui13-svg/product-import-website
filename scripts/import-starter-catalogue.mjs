@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { readFileSync } from "node:fs";\nconst catalogue = JSON.parse(readFileSync(new URL("../data/starter-catalogue.json", import.meta.url), "utf8"));
+import { readFileSync } from "node:fs";
+const catalogue = JSON.parse(readFileSync(new URL("../data/starter-catalogue.json", import.meta.url), "utf8"));
 
 const prisma = new PrismaClient();
 
