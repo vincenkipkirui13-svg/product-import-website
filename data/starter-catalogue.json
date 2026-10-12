@@ -1,0 +1,62 @@
+{
+  "researchedAt": "2026-10-12",
+  "pricingMethod": "Jumia Kenya listing price used as reference only; suggested store selling prices are separate and editable.",
+  "products": [
+    {
+      "sourceId": "verified-retail-research",
+      "sourceSku": "SAMSUNG-GALAXY-A07-4G-128-4-BLACK",
+      "sourceUrl": "https://gcc.luluhypermarket.com/en-ae/samsung-galaxy-a07-4g-smartphone-4-gb-ram-128-gb-storage-black/p/2553837/",
+      "name": "Samsung Galaxy A07 4G, 128GB, 4GB RAM - Black",
+      "slug": "samsung-galaxy-a07-4g-128gb-4gb-ram-black",
+      "description": "Samsung Galaxy A07 4G smartphone with 128GB storage and 4GB RAM. Product photo sourced from a retailer other than Jumia; price reference checked on Jumia Kenya.",
+      "sellingPrice": 17499,
+      "referencePrice": 17990,
+      "referencePriceUrl": "https://www.jumia.co.ke/samsung-galaxy-a07-128gb-4gb-ram-dual-sim-50mp-camera-5000mah-battery-black-325429624.html",
+      "imageUrl": "https://bf1af2.akinoncloudcdn.com/products/2025/08/21/610195/ef37ffd1-7192-4a27-95a4-0a12c0b6422e_size1080_cropCenter.jpg",
+      "imageSourceUrl": "https://gcc.luluhypermarket.com/en-ae/samsung-galaxy-a07-4g-smartphone-4-gb-ram-128-gb-storage-black/p/2553837/",
+      "category": "Smartphones"
+    },
+    {
+      "sourceId": "verified-retail-research",
+      "sourceSku": "HISENSE-REF094DR-94L-SILVER",
+      "sourceUrl": "https://www.digitalcityelectronics.com/products/hisense-ref094dr-94-liters-fridge-silver",
+      "name": "Hisense REF094DR 94L Single-Door Refrigerator - Silver",
+      "slug": "hisense-ref094dr-94l-single-door-refrigerator-silver",
+      "description": "Hisense REF094DR compact 94-litre single-door refrigerator in silver. Product photo sourced from Digital City Electronics; Jumia Kenya price used only as a comparison reference.",
+      "sellingPrice": 14499,
+      "referencePrice": 14999,
+      "referencePriceUrl": "https://www.jumia.co.ke/hisense-ref094dr-fridge-94-liters-single-door-94-l-fridge-94ltr-refrigerator-94l-fridge-silver-2yrs-wrty-283761286.html",
+      "imageUrl": "https://www.digitalcityelectronics.com/cdn/shop/files/f2.jpg?v=1744743849",
+      "imageSourceUrl": "https://www.digitalcityelectronics.com/products/hisense-ref094dr-94-liters-fridge-silver",
+      "category": "Fridges & Freezers"
+    },
+    {
+      "sourceId": "verified-retail-research",
+      "sourceSku": "HISENSE-43A4Q-43-FHD-SMART-TV",
+      "sourceUrl": "https://dienmaycholon.com/tivi/smart-tivi-hisense-full-hd-43-inch-43a4q",
+      "name": "Hisense 43A4Q 43-inch Full HD Smart TV",
+      "slug": "hisense-43a4q-43-inch-full-hd-smart-tv",
+      "description": "Hisense 43A4Q 43-inch Full HD Smart TV with VIDAA OS and Wi-Fi. Product photo sourced from a retailer other than Jumia; price reference checked on Jumia Kenya.",
+      "sellingPrice": 22999,
+      "referencePrice": 23630,
+      "referencePriceUrl": "https://www.jumia.co.ke/hisense-hisense-43a4q-43-fhd-smart-tv-vidaa-os-wi-fi-1920x1080-312890046.html",
+      "imageUrl": "https://cdn11.dienmaycholon.vn/filewebdmclnew/DMCL21/Picture/Apro/Apro_product_36914/smart-tivi-hisense-full-hd-43-inch-43a4q-main-328108.png",
+      "imageSourceUrl": "https://dienmaycholon.com/tivi/smart-tivi-hisense-full-hd-43-inch-43a4q",
+      "category": "Televisions"
+    },
+    {
+      "sourceId": "verified-retail-research",
+      "sourceSku": "HISENSE-WSQB753W-75KG-TWIN-TUB",
+      "sourceUrl": "https://www.sales366.com/product/hisense-7-5-kg-washing-machine-twin-tub-classical-design-lint-filter-white-color-wsqb-753",
+      "name": "Hisense WSQB753W 7.5kg Twin-Tub Washing Machine",
+      "slug": "hisense-wsqb753w-75kg-twin-tub-washing-machine",
+      "description": "Hisense 7.5kg twin-tub top-load washing machine. Image matched to the WSQB753 model family; Jumia Kenya listing used for the current price reference.",
+      "sellingPrice": 15999,
+      "referencePrice": 16699,
+      "referencePriceUrl": "https://www.jumia.co.ke/hisense-wsqb753w-7.5kg-twin-tub-top-load-washing-machine-white-2yrs-wrty-284340554.html",
+      "imageUrl": "https://onbqztjxmlvffbwqmkbx.supabase.co/storage/v1/object/public/catalog-images/migrated/2024/09/jj-removebg-preview.png",
+      "imageSourceUrl": "https://www.sales366.com/product/hisense-7-5-kg-washing-machine-twin-tub-classical-design-lint-filter-white-color-wsqb-753",
+      "category": "Washing Machines"
+    }
+  ]
+}
