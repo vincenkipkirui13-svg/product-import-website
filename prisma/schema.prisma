@@ -48,6 +48,9 @@ model Product {
   description  String?
   sourcePrice  Decimal            @db.Decimal(12, 2)
   sellingPrice Decimal            @db.Decimal(12, 2)
+  referencePrice Decimal?          @db.Decimal(12, 2)
+  referencePriceUrl String?
+  referencePriceCheckedAt DateTime?
   currency     String             @db.Char(3)
   availability ProductAvailability @default(UNKNOWN)
   category     String
