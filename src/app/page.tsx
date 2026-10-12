@@ -18,7 +18,7 @@ function ProductRail({title,kicker,products,href="/products"}:{title:string;kick
     <div className="container market-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><Link href={href}>See all <span>→</span></Link></div>
     <div className="container rail-shell"><div className="product-rail">{products.map(product=>{const image=product.images[0];return <Link className="market-card" href={`/products/${product.slug}`} key={product.id}>
       <div className="market-card-media">{image?<img src={image.url} alt={image.alt||product.name} loading="lazy"/>:<div className="product-media-fallback">Image pending</div>}</div>
-      <div className="market-card-body"><span className="product-category">{product.category}</span><h3>{product.name}</h3><strong>{money(product.sellingPrice,product.currency)}</strong><span className={`availability availability-${product.availability.toLowerCase()}`}>{product.availability.toLowerCase()}</span></div>
+      <div className="market-card-body"><span className="product-category">{product.category}</span><h3>{product.name}</h3><strong>{money(product.sellingPrice,product.currency)}</strong>{product.referencePrice!==null&&product.referencePrice!==undefined&&Number(product.referencePrice)>Number(product.sellingPrice)&&<small className="muted"><s>{money(product.referencePrice,product.currency)}</s> Jumia reference</small>}<span className={`availability availability-${product.availability.toLowerCase()}`}>{product.availability.toLowerCase()}</span></div>
     </Link>})}</div></div>
   </section>;
 }
