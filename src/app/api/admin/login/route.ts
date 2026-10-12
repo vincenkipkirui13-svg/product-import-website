@@ -6,28 +6,28 @@ const attempts=new Map<string,{count:number;resetAt:number}>();
 const WINDOW_MS=10*60*1000;
 const MAX_ATTEMPTS=10;
 
-function rateLimitKey(request:NextRequest,email:string){
+function rateLimitKey(request:NextRequest,username:string){
   const forwarded=request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
-  return `${forwarded}:${email}`;
+  return `${forwarded}:${username}`;
 }
 
 export async function POST(request:NextRequest){
  const body=await request.json().catch(()=>null);
- const email=typeof body?.email==="string"?body.email.trim().toLowerCase():"";
+ const username=typeof body?.username==="string"?body.username.trim():typeof body?.email==="string"?body.email.trim():"";
  const password=typeof body?.password==="string"?body.password:"";
- const expectedEmail=(process.env.ADMIN_EMAIL||"").trim().toLowerCase();
+ const expectedUsername=(process.env.ADMIN_USERNAME||process.env.ADMIN_EMAIL||"").trim();
  const expectedHash=process.env.ADMIN_PASSWORD_HASH||"";
- if(!expectedEmail||!expectedHash)return NextResponse.json({error:"Admin authentication is not configured."},{status:503});
+ if(!expectedUsername||!expectedHash)return NextResponse.json({error:"Admin authentication is not configured."},{status:503});
 
- const key=rateLimitKey(request,email);
+ const key=rateLimitKey(request,username.toLowerCase());
  const now=Date.now();
  const record=attempts.get(key);
  if(record&&record.resetAt>now&&record.count>=MAX_ATTEMPTS)return NextResponse.json({error:"Too many sign-in attempts. Please wait a few minutes and try again."},{status:429,headers:{"Retry-After":String(Math.ceil((record.resetAt-now)/1000))}});
  if(!record||record.resetAt<=now)attempts.set(key,{count:0,resetAt:now+WINDOW_MS});
 
- const okEmail=email===expectedEmail;
- const okHash=okEmail?await verifyAdminPassword(password,expectedHash):false;
- if(!okEmail||!okHash){
+ const okUsername=username.toLowerCase()===expectedUsername.toLowerCase();
+ const okHash=okUsername?await verifyAdminPassword(password,expectedHash):false;
+ if(!okUsername||!okHash){
    const current=attempts.get(key)!; current.count+=1;
    return NextResponse.json({error:"Invalid credentials."},{status:401});
  }
