@@ -10,7 +10,7 @@ const example = JSON.stringify([
     "sourceUrl": "https://supplier.example/products/model-001",
     "name": "Brand Model 001",
     "description": "Product description verified against the source listing.",
-    "sourcePrice": 10000,
+    "sourcePrice": 10000,\n    "referencePrice": 12000,\n    "referencePriceUrl": "https://www.jumia.co.ke/example-listing.html",\n    "referencePriceCheckedAt": "2026-10-12T10:00:00.000Z",
     "currency": "KES",
     "availability": "available",
     "imageUrls": ["https://images.example.com/model-001.jpg"],
@@ -77,7 +77,7 @@ export default function AdminImportPage() {
   return <main className="admin-page"><section className="section page-top"><div className="container">
     <div className="admin-title-row"><div><p className="eyebrow">CATALOGUE TOOLS</p><h1>Bulk product import</h1><p className="muted">Import up to 2,000 validated products in one run.</p></div><Link className="button secondary" href="/admin/products">Back to products</Link></div>
     <div className="form-card" style={{maxWidth: 900, margin: "0 auto"}}>
-      <p className="muted">Use real product records with a source listing URL and direct image URLs. Source prices are used as source costs by the current importer; do not enter a Jumia comparison price as a supplier cost.</p>
+      <p className="muted">Use real product records with a source listing URL and direct image URLs. Keep sourcePrice (supplier cost) separate from referencePrice (Jumia comparison price).</p>
       <label htmlFor="sourceName">Catalogue/source name</label>
       <input id="sourceName" value={sourceName} onChange={e => setSourceName(e.target.value)} required />
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:16,marginTop:16}}>
@@ -86,7 +86,7 @@ export default function AdminImportPage() {
       </div>
       <label htmlFor="catalogueJson" style={{display:"block",marginTop:16}}>Product catalogue JSON</label>
       <textarea id="catalogueJson" rows={18} value={payload} onChange={e => setPayload(e.target.value)} placeholder={example} spellCheck={false} style={{width:"100%",fontFamily:"monospace",fontSize:13}} />
-      <p className="muted">Required fields: sourceId, sourceUrl, name, sourcePrice, currency, availability, imageUrls and category. Use direct image URLs, not webpage URLs. Available status values: available, unavailable, unknown.</p>
+      <p className="muted">Required fields: sourceId, sourceUrl, name, sourcePrice, currency, availability, imageUrls and category. Optional Jumia comparison fields: referencePrice, referencePriceUrl, referencePriceCheckedAt. Use direct image URLs, not webpage URLs. Available status values: available, unavailable, unknown.</p>
       <label style={{display:"flex",alignItems:"flex-start",gap:10,marginTop:16}}><input type="checkbox" checked={authorized} onChange={e => setAuthorized(e.target.checked)} /><span>I confirm that I am authorized to use the imported product data and images.</span></label>
       <button className="button" type="button" disabled={busy || !payload.trim()} onClick={submit} style={{marginTop:18}}>{busy ? "Importing catalogue…" : "Validate and import products"}</button>
       {error && <p role="alert" style={{color:"#b42318",whiteSpace:"pre-wrap"}}>{error}</p>}
